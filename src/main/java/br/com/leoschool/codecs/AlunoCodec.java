@@ -14,6 +14,7 @@ import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 
 import br.com.leoschool.model.Aluno;
+import br.com.leoschool.model.Contato;
 import br.com.leoschool.model.Curso;
 import br.com.leoschool.model.Habilidade;
 import br.com.leoschool.model.Nota;
@@ -36,6 +37,7 @@ public class AlunoCodec implements CollectibleCodec<Aluno> {
 		document.put("curso", new Document("nome", aluno.getCurso().getNome()));
 		List<Habilidade> habilidades = aluno.getHabilidades();
 		List<Nota> notas = aluno.getNotas();
+		Contato contato = aluno.getContato();
 		
 		if (habilidades != null) {
 			List<Document> habilidadesDocument = new ArrayList<>();
@@ -57,6 +59,17 @@ public class AlunoCodec implements CollectibleCodec<Aluno> {
 			
 			document.put("notas", notasParaSalvar);
 		}
+		
+		List<Double> coordinates = new ArrayList<Double>();
+		
+		for (Double coordinate : contato.getCoordinates()) {
+			coordinates.add(coordinate);
+		}
+		
+		document.put("contato", new Document()
+				.append("endereco", contato.getEndereco())
+				.append("coordinates", coordinates)
+				.append("type", contato.getType()));
 		
 		codec.encode(bsonWriter, document, encoderContext);
 	}
@@ -102,6 +115,14 @@ public class AlunoCodec implements CollectibleCodec<Aluno> {
 			}
 			
 			aluno.setNotas(notasDoAluno);
+		}
+		
+		Document contato = (Document) document.get("contato");
+		
+		if (contato != null) {
+			String endereco = contato.getString("contato");
+			List<Double> coordinates = (List<Double>) contato.get("coordinates");
+			aluno.setContato(new Contato(endereco, coordinates));
 		}
 		
 		return aluno;

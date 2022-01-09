@@ -16,6 +16,9 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
 
 import br.com.leoschool.codecs.AlunoCodec;
 import br.com.leoschool.model.Aluno;
@@ -99,5 +102,45 @@ public class AlunoRepository {
 	
 	public void closeConnection() {
 		this.mongoClient.close();
+	}
+
+	public List<Aluno> findByGrade(String classificacao, double nota) {
+		getConnection();
+		
+		MongoCollection<Aluno> alunosCollection = this.mongoDatabase.getCollection("alunos", Aluno.class);
+		
+		MongoCursor<Aluno> mongoCursor = null;
+		
+		if (classificacao.equals("reprovados")) {
+			mongoCursor = alunosCollection.find(Filters.lt("notas", nota)).iterator();
+		} else if (classificacao.equals("aprovados")) {
+			mongoCursor = alunosCollection.find(Filters.gte("notas", nota)).iterator();
+		}
+		
+		List<Aluno> alunos = popularAlunos(mongoCursor);
+		
+		closeConnection();
+		
+		return alunos;
+	}
+
+	public List<Aluno> findByLocation(Aluno aluno) {
+		getConnection();
+		
+		MongoCollection<Aluno> alunosCollection = this.mongoDatabase.getCollection("alunos", Aluno.class);
+		
+		alunosCollection.createIndex(Indexes.geo2dsphere("contato"));
+		
+		List<Double> coordinates = aluno.getContato().getCoordinates();
+		
+		Point pontoDeReferencia = new Point(new Position(coordinates.get(0), coordinates.get(1)));
+		
+		MongoCursor<Aluno> mongoCursor = alunosCollection.find(Filters.nearSphere("contato", pontoDeReferencia, 2000.0, 0.0)).limit(2).skip(1).iterator();
+		
+		List<Aluno> alunos = popularAlunos(mongoCursor);
+		
+		closeConnection();
+		
+		return alunos;
 	}
 }

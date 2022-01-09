@@ -18,6 +18,8 @@ public class Aluno {
 	private List<Nota> notas;
 	private List<Habilidade> habilidades;
 	
+	private Contato contato;
+	
 	public ObjectId getId() {
 		return id;
 	}
@@ -62,6 +64,14 @@ public class Aluno {
 		this.notas = notas;
 	}
 	
+	public Contato getContato() {
+		return contato;
+	}
+
+	public void setContato(Contato contato) {
+		this.contato = contato;
+	}
+
 	public List<Habilidade> getHabilidades() {
 		if (this.habilidades == null) {
 			this.habilidades = new ArrayList<Habilidade>();

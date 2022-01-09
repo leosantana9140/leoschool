@@ -1,7 +1,7 @@
 package br.com.leoschool.model;
 
 public class Nota {
-	private double valor;
+	private Double valor;
 	
 	public Nota() { }
 
@@ -13,7 +13,7 @@ public class Nota {
 		return valor;
 	}
 
-	public void setValor(double valor) {
+	public void setValor(Double valor) {
 		this.valor = valor;
 	}
 }

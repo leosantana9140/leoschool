@@ -1,5 +1,6 @@
 package br.com.leoschool.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,14 +12,20 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.google.maps.errors.ApiException;
+
 import br.com.leoschool.model.Aluno;
 import br.com.leoschool.repository.AlunoRepository;
+import br.com.leoschool.service.GeolocalizacaoService;
 
 @Controller
 public class AlunoController {
 	
 	@Autowired
 	private AlunoRepository alunoRepository;
+	
+	@Autowired
+	private GeolocalizacaoService geolocalizacaoService;
 	
 	@GetMapping("/aluno/cadastrar")
 	public String cadastrar(Model model) {
@@ -28,7 +35,19 @@ public class AlunoController {
 	
 	@PostMapping("/aluno/salvar")
 	public String salvar(@ModelAttribute Aluno aluno) {
-		alunoRepository.salvar(aluno);
+		try {
+			
+			List<Double> latitudeLongitude = geolocalizacaoService.obterLatitudeLongitude(aluno.getContato());
+			
+			aluno.getContato().setCoordinates(latitudeLongitude);
+			
+			alunoRepository.salvar(aluno);
+			
+		} catch (Exception e) {
+			System.out.println("Endereço não localizado.");
+			e.printStackTrace();
+		}
+		
 		return "redirect:/";
 	}
 	
